@@ -1,0 +1,177 @@
+---
+title: "Game of Thrones Analysis"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#101010"
+      fg: "#EDE7DC" 
+      primary: "#800020"
+      base_font:
+        google: Prompt
+      code_font:
+        google: JetBrains Mono
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+# Install thematic and un-comment for themed static plots (i.e., ggplot2)
+# thematic::thematic_rmd()
+```
+
+# Character Connections
+
+## Column {data-width=1000 .tabset}
+
+### Book 1
+
+```{r}
+CG1
+```
+
+### Book 2
+
+```{r}
+CG2
+```
+
+### Book 3
+
+```{r}
+CG3
+```
+
+### Book 4
+
+```{r}
+CG4
+```
+
+### Book 5
+
+```{r}
+CG5
+```
+
+
+# Views
+
+## Column {data-width=1000 .tabset}
+
+### Season Views
+
+```{r}
+fig
+```
+
+### Episode Views
+
+```{r}
+Ep_views
+```
+
+### 8th Season
+
+```{r}
+gots8
+```
+
+
+# Directors
+
+## Column {data-width=1000 .tabset}
+
+### All Directors
+
+```{r}
+all_dir
+```
+
+### Directors 10m
+
+```{r}
+six_dir
+```
+
+### Directors 10M
+
+```{r}
+six_dir_bar
+```
+
+
+# Ratings
+
+## Column {data-width=1000 .tabset}
+
+### IMDb vs Metacritic
+
+```{r}
+imdbmeta
+```
+
+# Actors
+
+## Column {data-width=1000 .tabset}
+
+### Star 1
+
+```{r}
+plstar1
+```
+
+### Star 2
+
+```{r}
+plstar2
+```
+
+### Star 3
+
+```{r}
+plstar3
+```
+
+
+# Authors
+
+## Column {data-width=500}
+
+### Authors1
+
+```{r}
+author1
+```
+
+## Column {data-width=500}
+
+### Authors2
+
+```{r}
+author2
+```
+
+# Battles and Characters
+
+## Column {data-width=1000 .tabset}
+
+### Attacker Size
+
+```{r}
+attack
+```
+
+### Lannisters
+
+```{r}
+lannisters
+```
+
+### Characters
+
+```{r}
+charact_appear
+```
+
+

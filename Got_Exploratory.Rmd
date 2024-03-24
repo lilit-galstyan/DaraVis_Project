@@ -1,0 +1,264 @@
+---
+title: "GOT_Exploratory"
+output: html_document
+date: '2022-11-28'
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(ggExtra)
+library(ggpubr)
+library(plotly)
+library(gganimate)
+library(ggcorrplot)
+library(flexdashboard)
+library(DT)
+library(tidyr)
+library(igraph)
+library(ggraph)
+library(networkD3)
+library(tidygraph)
+library(igraph)
+library(networkD3)
+library(ggraph)
+library(RColorBrewer)
+library(gcookbook)
+library(gifski)
+library(png)
+```
+
+
+Correlation between numeric feautures of episodes.
+```{r}
+Episodes_num <- Episodes %>% select_if(is.numeric)
+Episodes_num <- subset(Episodes_num, select = -Budget_estimate)
+cor_mat <- round(cor(Episodes_num[,-1]),2)
+ggcorrplot(cor_mat) + ggtitle("Correlations between Numeric Features of Episodes")
+```
+
+As it can be concluded, the highest correlated numeric features of episodes are US viewers and Critics reviews, which is quite logical because knowing the critics reviews is a good indicator of whether we would watch a TV series or not. The least correlated features are Users reviews and Rating.
+
+
+Datasets:
+```{r}
+GOT <- read.csv("Game_of_Thrones.csv")
+Episodes <- read.csv("GOT_episodes_v4.csv")
+Characters <- read.csv("characters_v4.csv")
+Battles <- read.csv("battles.csv")
+ConnectionsBook1 <- read.csv("book1.csv")
+ConnectionsBook2 <- read.csv("book2.csv")
+ConnectionsBook3 <- read.csv("book3.csv")
+ConnectionsBook4 <- read.csv("book4.csv")
+ConnectionsBook5 <- read.csv("book5.csv")
+```
+
+
+Connection graphs.
+```{r}
+CG1 <- simpleNetwork(ConnectionsBook1, height="100px", width="100px")
+#CG1
+```
+
+```{r}
+CG2 <- simpleNetwork(ConnectionsBook2, height="100px", width="100px")
+#CG2
+```
+
+```{r}
+CG3 <- simpleNetwork(ConnectionsBook3, height="100px", width="100px")
+#CG3
+```
+
+```{r}
+CG4 <- simpleNetwork(ConnectionsBook4, height="100px", width="100px")
+#CG4
+```
+
+```{r}
+CG5 <- simpleNetwork(ConnectionsBook5, height="100px", width="100px")
+#CG5
+```
+
+
+Seasons and their views.
+```{r}
+ViewsS1 <- Episodes %>% filter(Season == '1')
+ViewsS2 <- Episodes %>% filter(Season == '2')
+ViewsS3 <- Episodes %>% filter(Season == '3')
+ViewsS4 <- Episodes %>% filter(Season == '4')
+ViewsS5 <- Episodes %>% filter(Season == '5')
+ViewsS6 <- Episodes %>% filter(Season == '6')
+ViewsS7 <- Episodes %>% filter(Season == '7')
+ViewsS8 <- Episodes %>% filter(Season == '8')
+```
+
+```{r}
+fig <- plot_ly(alpha = 0.6)
+fig <- fig %>% add_bars(x = ~ViewsS1$Episode, name = "Season 1", y = ~ViewsS1$US_Viewers)
+fig <- fig %>% add_bars(x = ~ViewsS2$Episode, name = "Season 2", y = ~ViewsS2$US_Viewers)
+fig <- fig %>% add_bars(x = ~ViewsS3$Episode, name = "Season 3", y = ~ViewsS3$US_Viewers)
+fig <- fig %>% add_bars(x = ~ViewsS4$Episode, name = "Season 4", y = ~ViewsS4$US_Viewers)
+fig <- fig %>% add_bars(x = ~ViewsS5$Episode, name = "Season 5", y = ~ViewsS5$US_Viewers)
+fig <- fig %>% add_bars(x = ~ViewsS6$Episode, name = "Season 6", y = ~ViewsS6$US_Viewers)
+fig <- fig %>% add_bars(x = ~ViewsS7$Episode, name = "Season 7", y = ~ViewsS7$US_Viewers)
+fig <- fig %>% add_bars(x = ~ViewsS8$Episode, name = "Season 8", y = ~ViewsS8$US_Viewers)
+fig <- fig %>% layout(barmode = "overlay", title = "Overlayed barplots of Episodes and their corresponding Views", xaxis = list(title = "Episode Number"), yaxis = list(title = "Number of Views (in millions) in the US"))
+#fig
+```
+
+
+Which episode has the highest number of views? What caused that?
+```{r}
+Ep_views <- plot_ly(GOT, x = ~No..of.Episode..Overall., y = ~U.S..Viewers..Millions., size = ~U.S..Viewers..Millions.) %>% layout(title = "Number of Views in the US for Each Episode", xaxis = list(title = "Episode Number"), yaxis = list(title = "Number of Views (in millions) in the US"))
+#Ep_views
+```
+
+By getting the overall pattern of the views of all episodes, it can be seen that the views mainly increase latest episodes: in fact, the episode numbers and the views have a positive relationship. To be more precise, the smallest number of views (2.2 million) are for the 2nd episode, and the largest number of views (13.61 million) are for the last episode.
+
+
+Did the last season’s first episode cause a drastic change in views.
+```{r}
+GOTs8 <- subset(GOT, Season == 8)
+gots8 <- ggplotly(ggplot() + geom_point(data = GOTs8, mapping = aes(x = No..of.Episode..Season., y = U.S..Viewers..Millions.)) + geom_line(data = GOTs8, mapping = aes(x = No..of.Episode..Season., y = U.S..Viewers..Millions.)) + 
+  labs(x = "Episode", y = "Viewers (in millions)", title = "Number of Viewers During Season 8"))
+#gots8
+```
+
+It is known that the 8th season is the most criticized because of its plot. Lets see if there was a change in number of views right after the first episode of the season. Just by looking at the plot, it is seen that there is decrease of views after the first episode of the 8th season. There is further increase in views after the second episode, but that is after people continued to watch the series after the first episode, but the fact is that many people stopped watch Game of Thrones after the first episode of the last season.
+
+
+Season of episodes and their corresponding views depending on the duration. Does it affect the views?
+```{r}
+my_theme <- theme_classic(base_family = "Times") +
+  theme(axis.text.y = element_blank()) +
+  theme(axis.ticks.y = element_blank()) +
+  theme(axis.line.y = element_blank()) +
+  theme(legend.background = element_rect(fill = "gainsboro")) +
+  theme(plot.background = element_rect(fill = "gainsboro")) +
+  theme(panel.background = element_rect(fill = "gainsboro"))
+
+myplot <- ggplot(GOT, aes(x = Running.Time..Minutes.,y = No..of.Episode..Season., fill = U.S..Viewers..Millions., label = U.S..Viewers..Millions.)) +
+  geom_rect(aes(xmin = 0 ,
+      xmax =  Running.Time..Minutes., ymin = No..of.Episode..Season. - .45,
+      ymax = No..of.Episode..Season. + .45,
+      y = No..of.Episode..Season.))+
+  geom_text() + scale_y_reverse() +
+  my_theme
+#myplot
+```
+
+
+Which directors get the biggest numbers of views for the episodes they have shot?
+```{r}
+director <- Episodes %>% group_by(Director) %>% summarise(MaxViews = max(US_Viewers))
+all_dir <- ggplotly(ggplot(director, aes(x = MaxViews, fill = Director)) + geom_histogram() + ggtitle("Maximum Views Each Director Has Got for Their Episodes"))
+#all_dir
+```
+There are 19 directors, each has shot some amount of episodes. The goal is to find the maximum number of views each director has got for their works. This plot shows the directors for ranges of views. The smallest number of views of 2.22 million comes from the director Timothy Van Patten. But is this very informative? Lets have another hypothesis: which directors are responsible for the episodes that exceed the number of views of 10 million?
+
+```{r}
+director_large <- subset(director, MaxViews >= 10)
+six_dir <- ggplotly(ggplot(director_large, aes(x = MaxViews, fill = Director)) + geom_histogram() + ggtitle("Largest Number of Views of Episodes Shot by Each Director"))
+#six_dir
+```
+
+In this case we have only six directors left, the ones that have shot the episodes that have had views of more than 10 million. And to make the plot more informative and pleasant:
+
+```{r}
+six_dir_bar <- plot_ly(director_large, x = ~Director, y = ~MaxViews, color = ~Director, type = "bar") %>% layout(title = "Largest Number of Views of Episodes Shot by Each Director")
+#six_dir_bar
+```
+
+A bar plot of the six directors and the corresponding maximum ratings of their episodes. We see that the highest rating of 13.61 goes to the episode that was shot by David Benioff.
+
+
+User vs critics reviews: how different are the distributions?
+```{r}
+g <- ggplot(GOT, aes(x = IMDb.Rating, y = Metacritic.Ratings)) + geom_point() + geom_smooth(se = FALSE)
+#ggMarginal(g, type = "histogram")
+```
+
+```{r}
+imdbmeta <- ggplotly(ggplot(GOT, aes(x = IMDb.Rating, y = Metacritic.Ratings)) + geom_point() + geom_smooth(se = FALSE) + labs(title = "IMDb vs Metacritic Ratings"))
+#imdbmeta
+```
+
+The IMDb and Metacritic ratings are generally in a positive relationship. Meaning that with the increase of the IMDb rating the Metacritic rating is also increased for each episode.
+
+
+Do votes of episodes correspond to the ratings?
+```{r}
+votes_anim <- ggplot(Episodes, aes(Rating, Votes, color = Episode)) +
+  geom_point() +
+  scale_x_log10() +
+  transition_time(Season) +
+    labs(title = 'Season: {frame_time}')
+#votes_anim
+```
+
+
+Does the starring actor of an episode have any relationship with the episode’s rating? Which stars get the highest ratings?
+```{r}
+star1 <- Episodes %>% group_by(Star_1) %>% summarise(UserMaxRating = max(Users_reviews))
+star2 <- Episodes %>% group_by(Star_2) %>% summarise(UserMaxRating = max(Users_reviews))
+star3 <- Episodes %>% group_by(Star_3) %>% summarise(UserMaxRating = max(Users_reviews))
+
+plstar1 <- ggplotly(ggplot(star1, aes(x = UserMaxRating, fill = Star_1)) + geom_histogram() + labs(x = "Users Maximum Rating", title = "User Ratings for 1st Stars of Each Episode"))
+
+plstar2 <- ggplotly(ggplot(star2, aes(x = UserMaxRating, fill = Star_2)) + geom_histogram() + labs(x = "Users Maximum Rating", title = "User Ratings for 2nd Stars of Each Episode"))
+
+plstar3 <- ggplotly(ggplot(star3, aes(x = UserMaxRating, fill = Star_3)) + geom_histogram() + labs(x = "Users Maximum Rating", title = "User Ratings for 3rd Stars of Each Episode"))
+```
+
+Each episode has 3 main starring actors. Taken with the maximum ratings of each star, we analyze which stars get the highest ratings. There has been one episode that has been rated with a very big score of 7358 by the users. On the first plot it can bee seen that Peter Dinklage, the actor of Tyrion Lannister, got to be Star 1 for the episode with the highest rating. Other actors for Star 1 got maximum ratings in the range of 36 to 106.
+
+Star 2 of the highest rated episode was Nikolaj Coster-Walda, the actor of Jaime Lannister. Other actors who have been Star 2 got maximum ratings from 34 to 253.
+
+As Star 3 of the episode with the highest rating was Lena Headey, who is the actress of Cersei Lannister, and the other Star 3 actors got maximum ratings of 23 to 181, but there is also Star 3 who got a maximum rating of 3749 who is Emilia Clarke, the actress of Daenerys Targaryen.
+
+
+Do the authors have a big impact on the rating of the episodes?
+```{r}
+author1 <- plot_ly(GOT, y = ~Rotten.Tomatoes.Rating..Percentage., color = ~Written.by, type = "box") %>% layout(title = "Rotten Tomatoes Rating for Episodes Written by Each Author", yaxis = list(title = "Rotten Tomatoes Rating Percentage"))
+```
+
+There are three authors - Jane Espenson, David Benioff, D. B. Weiss, that have worked together only on one episode, which got a Rotten Tomatoes Rating of 100, therefore we can drop it as it does not provide sufficient information.
+
+```{r}
+GOT_new <- subset(GOT, Written.by != "Jane Espenson, David Benioff, D. B. Weiss")
+author2 <- plot_ly(GOT_new, y = ~Rotten.Tomatoes.Rating..Percentage., color = ~Written.by, type = "box") %>% layout(title = "Rotten Tomatoes Rating for Episodes Written by Each Author", yaxis = list(title = "Rotten Tomatoes Rating Percentage"))
+```
+
+All authors have reached good results with their works, most of them have reached ratings of 100. There are only a few outliers: smaller values for ratings coming from Bryan Cogman (54) and David Benioff, D. B. Weiss who worked together (58,49,47), but they have both reached medians of 96. Dave Hill has a maximum of 96 and a median of 93.5, therefore his works could be considered less successful. The most successful works come from George R. R. Martin with ratings of 100 as maximum and of 97.5 as median, which is quite logical as Martin is the author of the original books on which the series are based.
+
+
+Does always the side with the bigger size of army decisively win the battle?
+```{r}
+battlesize <- Battles %>% select(c("name", "attacker_king", "attacker_1", "attacker_outcome", "attacker_size"))
+battlesize <- na.omit(battlesize)
+battlesize <- battlesize[-24,]
+attack <- ggplotly(ggplot(battlesize, aes(x = attacker_size, fill = attacker_outcome)) + geom_histogram(bins = 20) + labs(x = "Size of the attacker army", title = "Wins and Losses by Size of the Attacker Army") + facet_wrap(~attacker_outcome) + labs() + theme(legend.position = "None"))
+```
+
+Firstly for the losses, there are a few battles with smaller army size of attackers and there is one battle with a very big army size, close to 100k. However, there are more battles with small army size of attackers that resulted in winning. Therefore the size of the army does not really affect the outcome, whether the attacker would win or lose.
+
+
+Lannisters were considered the most powerful house of Westeros, how many battles did they win?
+```{r}
+Lannister_win <- subset(Battles, attacker_1 == "Lannister")
+lannisters <- ggplotly(ggplot(Lannister_win, aes(x = attacker_outcome, fill = attacker_outcome)) + geom_bar(color = "black") + labs(x = "Win or Loss", title = "Wins and Losses of House Lannister"))
+```
+
+In total, there have been eight battles where the main attacker was house Lannister. Seven out of all eight battles have been won by Lannisters and only one lost. It can be concluded that Lannisters indeed have been very powerful.
+
+
+How many times do the most powerful/main characters appear in the series?
+```{r}
+FamousCharacters <- Characters %>% filter(Character == "Tyrion Lannister" | Character == "Jon Snow" | Character == "Sansa Stark" | Character == "Tywin Lannister" | Character == "Melisandre" | Character == "Daenerys Targaryen" | Character == "Arya Stark" | Character == "Bran Stark" | Character == "Cersei Lannister")
+```
+
+```{r}
+charact_appear <- FamousCharacters %>% plot_ly(labels = ~Character, values = ~Episodes_appeared)  %>% add_pie(hole = 0.6) %>% layout(title = "Appearance of Most Powerful Characters")
+```
+
